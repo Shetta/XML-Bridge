@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <!-- Simple mock schema for testing -->
+  <xs:element name="note">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="pitch" type="xs:string" minOccurs="0"/>
+        <xs:element name="duration" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+      <xs:attribute name="pitch" type="xs:string"/>
+      <xs:attribute name="duration" type="xs:string"/>
+      <xs:attribute name="type" type="xs:string"/>
+      <xs:attribute name="stem-direction" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
