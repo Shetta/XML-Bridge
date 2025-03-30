@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "title": "Basic Example",
+    "composer": "Test Composer",
+    "date": "2023"
+  },
+  "score": {
+    "staves": [
+      {
+        "name": "Voice",
+        "clef": {
+          "shape": "G",
+          "line": 2
+        },
+        "measures": [
+          {
+            "number": 1,
+            "notes": [
+              {
+                "pitch": "C4",
+                "duration": "quarter"
+              },
+              {
+                "pitch": "D4",
+                "duration": "half"
+              },
+              {
+                "pitch": "E4",
+                "duration": "quarter"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
