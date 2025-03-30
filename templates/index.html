@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XML Bridge - Music Notation Converter</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fira+Code&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-exchange-alt"></i> XML Bridge</h1>
+            <p>Convert between CMME, MEI, and JSON music notation formats</p>
+            <div class="header-actions">
+                <button id="help-btn" class="btn btn-outline">
+                    <i class="fas fa-question-circle"></i> Help
+                </button>
+            </div>
+        </header>
+
+        <nav class="main-nav">
+            <ul>
+                <li><a href="#converter" class="active" data-tab="converter">Converter</a></li>
+                <li><a href="#datasets" data-tab="datasets">Datasets</a></li>
+            </ul>
+        </nav>
+
+        <div id="converter" class="tab-content active">
+            <div class="conversion-panel">
+                <div class="input-section">
+                    <h2>Input</h2>
+                    <form id="conversion-form">
+                        <div class="form-group">
+                            <label for="source-format">Source Format</label>
+                            <select id="source-format" required>
+                                <option value="cmme">CMME</option>
+                                <option value="mei">MEI</option>
+                                <option value="json">JSON</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="target-format">Target Format</label>
+                            <select id="target-format" required>
+                                <option value="mei">MEI</option>
+                                <option value="cmme">CMME</option>
+                                <option value="json">JSON</option>
+                            </select>
+                        </div>
+
+                        <div class="file-upload-container">
+                            <div class="file-drop-zone" id="drop-zone">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drag and drop your file here or click to browse</p>
+                                <input type="file" id="file-input" accept=".xml,.json,.cmme,.mei" required>
+                            </div>
+                            <div id="file-info" class="file-info"></div>
+                        </div>
+
+                        <div class="button-group">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-sync-alt"></i> Convert
+                            </button>
+                            <button type="button" id="interactive-btn" class="btn btn-primary">
+                                <i class="fas fa-exchange-alt"></i> Interactive Convert
+                            </button>
+                            <button type="button" id="validate-btn" class="btn btn-secondary" disabled>
+                                <i class="fas fa-check-circle"></i> Validate
+                            </button>
+                            <button type="button" id="metadata-btn" class="btn btn-secondary" disabled>
+                                <i class="fas fa-info-circle"></i> Extract Metadata
+                            </button>
+                            <button type="button" id="evaluate-btn" class="btn btn-secondary" disabled>
+                                <i class="fas fa-chart-bar"></i> Evaluate
+                            </button>
+                        </div>
+                        
+                        <!-- Interactive conversion panel -->
+                        <div id="interactive-panel" class="panel" style="display: none;">
+                            <div class="panel-header">
+                                <h3 id="interactive-header">Interactive Conversion</h3>
+                                <button id="cancel-interactive" class="btn btn-danger">
+                                    <i class="fas fa-times"></i> Cancel
+                                </button>
+                            </div>
+                            <div class="panel-body">
+                                <div class="session-info">
+                                    <p>Session ID: <span id="session-id">-</span></p>
+                                    <p>Pending decisions: <span id="pending-count">-</span></p>
+                                </div>
+                                
+                                <div id="decision-container" style="display: none;">
+                                    <h3>User Decision Required</h3>
+                                    <p class="decision-help">
+                                        The conversion process needs your input to resolve ambiguities.
+                                        Please select the appropriate option below.
+                                    </p>
+                                    <div id="decision-panel" class="decision-panel">
+                                        <!-- Decision content will be dynamically inserted here -->
+                                    </div>
+                                </div>
+                                
+                                <div id="interactive-progress">
+                                    <!-- Progress information will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="output-section">
+                    <h2>Output</h2>
+                    <div class="output-controls">
+                        <button id="copy-btn" class="btn btn-outline" disabled>
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button id="download-btn" class="btn btn-outline" disabled>
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+                    <div class="output-content">
+                        <div id="spinner" class="spinner" style="display: none;"></div>
+                        <pre id="output-display" class="code-display"></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="evaluation-panel" style="display: none;">
+                <h2>Conversion Evaluation</h2>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <h3>Accuracy</h3>
+                        <div class="metric-value" id="accuracy-metric">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Elements Preserved</h3>
+                        <div class="metric-value" id="preserved-metric">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Data Loss</h3>
+                        <div class="metric-value" id="loss-metric">-</div>
+                    </div>
+                    <div class="metric-card">
+                        <h3>Conversion Time</h3>
+                        <div class="metric-value" id="time-metric">-</div>
+                    </div>
+                </div>
+
+                <div class="evaluation-details">
+                    <div class="tabs">
+                        <button class="tab-btn active" data-tab="data-loss">Data Loss Analysis</button>
+                        <button class="tab-btn" data-tab="validation">Validation Results</button>
+                        <button class="tab-btn" data-tab="recommendations">Recommendations</button>
+                    </div>
+
+                    <div id="data-loss" class="tab-content active">
+                        <div class="severity-indicator">
+                            <h4>Loss Severity: <span id="severity-value">-</span></h4>
+                        </div>
+                        <div class="lost-elements">
+                            <h4>Lost Elements</h4>
+                            <ul id="lost-elements-list"></ul>
+                        </div>
+                        <div class="modified-content">
+                            <h4>Modified Content</h4>
+                            <ul id="modified-content-list"></ul>
+                        </div>
+                    </div>
+
+                    <div id="validation" class="tab-content">
+                        <div class="validation-results">
+                            <h4>Errors</h4>
+                            <ul id="validation-errors-list"></ul>
+                            <h4>Warnings</h4>
+                            <ul id="validation-warnings-list"></ul>
+                        </div>
+                    </div>
+
+                    <div id="recommendations" class="tab-content">
+                        <ul id="recommendations-list"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="datasets" class="tab-content">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Datasets</h2>
+                    <button class="btn btn-primary" onclick="datasetManager.showCreateModal()">
+                        <i class="fas fa-plus"></i> New Dataset
+                    </button>
+                </div>
+                
+                <div class="dataset-filters">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="dataset-search" placeholder="Search datasets...">
+                    </div>
+                    <div class="filter-group">
+                        <select id="format-filter">
+                            <option value="">All Formats</option>
+                            <option value="cmme">CMME</option>
+                            <option value="mei">MEI</option>
+                            <option value="json">JSON</option>
+                        </select>
+                        <select id="sort-by">
+                            <option value="name">Sort by Name</option>
+                            <option value="date">Sort by Date</option>
+                            <option value="size">Sort by Size</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="dataset-list" class="dataset-list">
+                    <!-- Datasets will be rendered here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="dataset-modal" class="modal">
+        <!-- Modal content will be dynamically inserted -->
+    </div>
+
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h3>Confirm Action</h3>
+            <p id="confirm-message"></p>
+            <div class="btn-group">
+                <button id="confirm-yes" class="btn btn-danger">Yes</button>
+                <button id="confirm-no" class="btn btn-secondary">No</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content help-content">
+            <div class="modal-header">
+                <h2>XML Bridge Help</h2>
+                <button class="modal-close" onclick="this.closest('.modal').style.display='none'">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="help-body">
+                <div class="help-section">
+                    <h3>About XML Bridge</h3>
+                    <p>XML Bridge is a tool for converting between different music notation formats:</p>
+                    <ul>
+                        <li><strong>CMME</strong> (Computerized Mensural Music Editing) - Specialized for early music (pre-1600) notation</li>
+                        <li><strong>MEI</strong> (Music Encoding Initiative) - Comprehensive standard for encoding musical documents</li>
+                        <li><strong>JSON</strong> - Machine-readable format for data exchange</li>
+                    </ul>
+                </div>
+                
+                <div class="help-section">
+                    <h3>Early Music Notation Features</h3>
+                    <p>CMME format supports several special features for pre-1600 music notation:</p>
+                    <ul>
+                        <li><strong>Mensural Notation</strong> - Special note values like maxima, longa, brevis</li>
+                        <li><strong>Ligatures</strong> - Groups of notes written as a single unit</li>
+                        <li><strong>Coloration</strong> - Note coloring to indicate rhythmic alterations</li>
+                        <li><strong>Mensuration Signs</strong> - Early time signatures (e.g., C, O, C.)</li>
+                        <li><strong>Musica Ficta</strong> - Editorial accidentals (e.g., C.4 instead of C4)</li>
+                    </ul>
+                    <p>When converting early music notation, some features may require manual decisions.</p>
+                </div>
+                
+                <div class="help-section">
+                    <h3>Standard vs. Interactive Conversion</h3>
+                    <p><strong>When to use Standard Conversion:</strong></p>
+                    <ul>
+                        <li>Simple modern notation with no ambiguities</li>
+                        <li>Files without special early music features</li>
+                        <li>Quick batch processing of multiple files</li>
+                    </ul>
+                    
+                    <p><strong>When to use Interactive Conversion:</strong></p>
+                    <ul>
+                        <li>Early music notation with mensural features</li>
+                        <li>Converting between formats with different capabilities</li>
+                        <li>When you need precise control over how notation features are converted</li>
+                        <li>When dealing with editorial or ambiguous notations</li>
+                    </ul>
+                </div>
+                
+                <div class="help-section">
+                    <h3>Sample CMME XML</h3>
+                    <pre class="help-example">&lt;cmme&gt;
+  &lt;metadata&gt;
+    &lt;title&gt;Early Music Example&lt;/title&gt;
+    &lt;composer&gt;Anonymous&lt;/composer&gt;
+    &lt;date&gt;1500&lt;/date&gt;
+  &lt;/metadata&gt;
+  &lt;score&gt;
+    &lt;staff name="Tenor"&gt;
+      &lt;clef shape="C" line="4"/&gt;
+      &lt;measure number="1"&gt;
+        &lt;note pitch="G3" duration="brevis"&gt;
+          &lt;ligature position="start"/&gt;
+        &lt;/note&gt;
+        &lt;note pitch="A3" duration="semibrevis"&gt;
+          &lt;ligature position="end"/&gt;
+        &lt;/note&gt;
+      &lt;/measure&gt;
+    &lt;/staff&gt;
+  &lt;/score&gt;
+&lt;/cmme&gt;</pre>
+                </div>
+                
+                <div class="help-section">
+                    <h3>Sample MEI XML</h3>
+                    <pre class="help-example">&lt;mei xmlns="http://www.music-encoding.org/ns/mei"&gt;
+  &lt;meiHead&gt;
+    &lt;fileDesc&gt;
+      &lt;titleStmt&gt;
+        &lt;title&gt;Early Music Example&lt;/title&gt;
+        &lt;composer&gt;Anonymous&lt;/composer&gt;
+      &lt;/titleStmt&gt;
+      &lt;pubStmt&gt;
+        &lt;date&gt;1500&lt;/date&gt;
+      &lt;/pubStmt&gt;
+    &lt;/fileDesc&gt;
+  &lt;/meiHead&gt;
+  &lt;music&gt;
+    &lt;body&gt;
+      &lt;mdiv&gt;
+        &lt;score&gt;
+          &lt;section&gt;
+            &lt;measure n="1"&gt;
+              &lt;staff n="1"&gt;
+                &lt;layer&gt;
+                  &lt;note pname="g" oct="3" dur="breve"/&gt;
+                  &lt;note pname="a" oct="3" dur="1"/&gt;
+                &lt;/layer&gt;
+              &lt;/staff&gt;
+            &lt;/measure&gt;
+          &lt;/section&gt;
+        &lt;/score&gt;
+      &lt;/mdiv&gt;
+    &lt;/body&gt;
+  &lt;/music&gt;
+&lt;/mei&gt;</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/utils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/converter.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/evaluator.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataset.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/interactive.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
