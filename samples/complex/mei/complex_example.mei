@@ -1,0 +1,51 @@
+<mei xmlns="http://www.music-encoding.org/ns/mei">
+    <meiHead>
+        <fileDesc>
+            <titleStmt>
+                <title>Complex Example</title>
+                <composer>Test Composer</composer>
+            </titleStmt>
+            <sourceDesc>
+                <source>
+                    <titleStmt>
+                        <title>Manuscript XYZ</title>
+                    </titleStmt>
+                    <dating>
+                        <date>1500</date>
+                    </dating>
+                </source>
+            </sourceDesc>
+        </fileDesc>
+    </meiHead>
+    <music>
+        <body>
+            <mdiv>
+                <score>
+                    <scoreDef key.sig="1s" meter.count="3" meter.unit="4">
+                        <staffGrp>
+                            <staffDef n="1" lines="5" clef.shape="G" clef.line="2"/>
+                        </staffGrp>
+                    </scoreDef>
+                    <section>
+                        <measure n="1">
+                            <staff n="1">
+                                <layer n="1">
+                                    <note pname="c" oct="4" dur="8" stem.dir="up">
+                                        <artic artic="stacc"/>
+                                    </note>
+                                    <note pname="d" oct="4" dur="16" stem.dir="up">
+                                        <artic artic="acc"/>
+                                    </note>
+                                    <chord dur="4">
+                                        <note pname="e" oct="4"/>
+                                        <note pname="g" oct="4"/>
+                                    </chord>
+                                </layer>
+                            </staff>
+                        </measure>
+                    </section>
+                </score>
+            </mdiv>
+        </body>
+    </music>
+</mei>
