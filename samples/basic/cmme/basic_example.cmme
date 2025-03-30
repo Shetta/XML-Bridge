@@ -1,0 +1,18 @@
+<cmme>
+  <metadata>
+      <title>Basic Example</title>
+      <composer>Test Composer</composer>
+      <date>2023</date>
+  </metadata>
+  <score>
+      <staff name="Voice">
+          <clef shape="G" line="2"/>
+          <measure number="1">
+              <note pitch="C4" duration="quarter"/>
+              <note pitch="D4" duration="half"/>
+              <note pitch="E4" duration="quarter"/>
+          </measure>
+      </staff>
+  </score>
+</cmme>
+        
