@@ -1,0 +1,27 @@
+<cmme>
+    <metadata>
+        <title>Complex Example</title>
+        <composer>Test Composer</composer>
+        <date>1500</date>
+        <source>Manuscript XYZ</source>
+    </metadata>
+    <score>
+        <staff name="Superius">
+            <clef shape="G" line="2"/>
+            <key signature="1s"/>
+            <time signature="3/4"/>
+            <measure number="1">
+                <note pitch="C4" duration="eighth" stem-direction="up">
+                    <articulation type="staccato"/>
+                </note>
+                <note pitch="D4" duration="sixteenth" stem-direction="up">
+                    <articulation type="accent"/>
+                </note>
+                <chord>
+                    <note pitch="E4" duration="quarter"/>
+                    <note pitch="G4" duration="quarter"/>
+                </chord>
+            </measure>
+        </staff>
+    </score>
+</cmme>
