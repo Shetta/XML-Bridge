@@ -423,14 +423,18 @@ class Dataset:
             self.logger.error(f"Error deleting dataset {name}: {str(e)}")
             return False
 
-    def _save_metadata(self, dataset_path: Path, metadata: Dict) -> None:
+    def _save_metadata(self, dataset_path: Union[str, Path], metadata: Dict) -> None:
         """Save dataset metadata."""
+        if isinstance(dataset_path, str):
+            dataset_path = Path(dataset_path)
         with open(dataset_path / 'metadata.json', 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2)
 
-    def _load_metadata(self, dataset_path: Path) -> Dict:
+    def _load_metadata(self, dataset_path: Union[str, Path]) -> Dict:
         """Load dataset metadata."""
         try:
+            if isinstance(dataset_path, str):
+                dataset_path = Path(dataset_path)
             with open(dataset_path / 'metadata.json', 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
