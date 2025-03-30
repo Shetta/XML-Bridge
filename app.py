@@ -1066,7 +1066,7 @@ def update_dataset(name):
             'update_source': request.headers.get('X-Source', 'web')
         }
         
-        dataset = dataset_manager.update_dataset(name, files, description, metadata_updates)
+        dataset = dataset_manager.update_dataset(name, files, description)
         
         # Perform validation after update
         validation_results = dataset_manager.validate_dataset(name)
