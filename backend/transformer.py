@@ -377,16 +377,18 @@ class Transformer:
                 except Exception as e:
                     self.logger.warning(f"Error analyzing conversion results: {str(e)}")
 
-            # Validate the final result if possible
-            if target_format in ['cmme', 'mei']:
-                try:
-                    if target_format == 'cmme':
-                        self.cmme_parser.validate(result)
-                    else:  # mei
-                        self.mei_parser.validate(result)
-                except Exception as e:
-                    self.logger.warning(f"Generated {target_format} content validation failed: {str(e)}")
-                    # Don't raise an exception here, allow potentially useful but invalid content to pass through
+            # Validate the final result before returning it.
+            try:
+                if target_format == 'cmme':
+                    self.cmme_parser.validate(result)
+                elif target_format == 'mei':
+                    self.mei_parser.validate(result)
+                else:
+                    self.json_converter.validate_json(result)
+            except Exception as e:
+                message = f"Generated {target_format.upper()} content failed validation: {str(e)}"
+                self.logger.error(message)
+                raise ValueError(message) from e
             
             return self.serializer.serialize(result)
 
@@ -1006,6 +1008,7 @@ class Transformer:
                                             
                                         measure_data['contents'].append({
                                             'type': 'chord',
+                                            'element': elem,
                                             'notes': notes
                                         })
                                     else:
@@ -1039,6 +1042,7 @@ class Transformer:
                                         
                                     measure_data['contents'].append({
                                         'type': 'chord',
+                                        'element': elem,
                                         'notes': notes
                                     })
                                 else:
@@ -1232,10 +1236,15 @@ class Transformer:
                     elif content['type'] == 'chord':
                         # Create chord element
                         chord = etree.SubElement(measure, 'chord')
-                        
+                        chord_element = content.get('element')
+                        chord_duration = chord_element.get('dur') if chord_element is not None else None
+
                         # Convert each note in the chord
                         for note in content.get('notes', []):
-                            cmme_note = self._convert_note_mei_to_cmme(note)
+                            cmme_note = self._convert_note_mei_to_cmme(
+                                note,
+                                default_duration=chord_duration
+                            )
                             chord.append(cmme_note)
                     else:
                         # Handle other elements
@@ -1417,12 +1426,17 @@ class Transformer:
         
         return mei_note
     
-    def _convert_note_mei_to_cmme(self, note: etree._Element) -> etree._Element:
+    def _convert_note_mei_to_cmme(
+        self,
+        note: etree._Element,
+        default_duration: Optional[str] = None
+    ) -> etree._Element:
         """
         Convert an MEI note to CMME format with enhanced attribute mapping.
 
         Args:
             note (etree._Element): MEI note element
+            default_duration (Optional[str]): Duration inherited from a parent chord
 
         Returns:
             etree._Element: Converted CMME note element
@@ -1460,7 +1474,7 @@ class Transformer:
             cmme_note.set('pitch', pitch)
         
         # Handle duration and dots
-        dur = note.get('dur')
+        dur = note.get('dur') or default_duration
         dots = note.get('dots')
         
         if dur:

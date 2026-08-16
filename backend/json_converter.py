@@ -29,6 +29,25 @@ class JSONConverter:
     def __init__(self):
         """Initialize the JSON converter."""
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+
+    def _normalize_json_structure(self, data: Union[str, Dict]) -> Dict:
+        """Return JSON data that uses the canonical top-level ``parts`` field."""
+        if isinstance(data, str):
+            json_obj = json.loads(data)
+        else:
+            json_obj = data
+
+        if not isinstance(json_obj, dict):
+            raise ValueError("JSON root must be an object")
+
+        normalized = dict(json_obj)
+        score = normalized.get('score')
+        if 'parts' not in normalized and isinstance(score, dict):
+            staves = score.get('staves')
+            if isinstance(staves, list):
+                normalized['parts'] = staves
+
+        return normalized
     
     def validate_json(self, data: Union[str, Dict]) -> bool:
         """
@@ -44,11 +63,7 @@ class JSONConverter:
             ValueError: If validation fails with specific error
         """
         try:
-            # Convert string to dict if needed
-            if isinstance(data, str):
-                json_obj = json.loads(data)
-            else:
-                json_obj = data
+            json_obj = self._normalize_json_structure(data)
             
             # Check if it's a dictionary
             if not isinstance(json_obj, dict):
@@ -104,11 +119,8 @@ class JSONConverter:
             ValueError: If conversion fails
         """
         try:
-            # Convert string to dict if needed
-            if isinstance(data, str):
-                json_obj = json.loads(data)
-            else:
-                json_obj = data
+            json_obj = self._normalize_json_structure(data)
+            self.validate_json(json_obj)
             
             # Create root element
             root = etree.Element('cmme')
@@ -413,11 +425,8 @@ class JSONConverter:
             ValueError: If conversion fails
         """
         try:
-            # Convert string to dict if needed
-            if isinstance(data, str):
-                json_obj = json.loads(data)
-            else:
-                json_obj = data
+            json_obj = self._normalize_json_structure(data)
+            self.validate_json(json_obj)
             
             # Create root element with namespace
             root = etree.Element('{' + self.MEI_NS + '}mei')

@@ -154,23 +154,21 @@ class SampleDatasets:
                 "composer": "Test Composer",
                 "date": "2023"
             },
-            "score": {
-                "staves": [{
-                    "name": "Voice",
-                    "clef": {
-                        "shape": "G",
-                        "line": 2
-                    },
-                    "measures": [{
-                        "number": 1,
-                        "notes": [
-                            {"pitch": "C4", "duration": "quarter"},
-                            {"pitch": "D4", "duration": "half"},
-                            {"pitch": "E4", "duration": "quarter"}
-                        ]
-                    }]
+            "parts": [{
+                "name": "Voice",
+                "clef": {
+                    "shape": "G",
+                    "line": 2
+                },
+                "measures": [{
+                    "number": 1,
+                    "notes": [
+                        {"pitch": "C4", "duration": "quarter"},
+                        {"pitch": "D4", "duration": "half"},
+                        {"pitch": "E4", "duration": "quarter"}
+                    ]
                 }]
-            }
+            }]
         }
 
         self._save_sample('basic', 'basic_example.cmme', basic_cmme)
